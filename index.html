@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="css/style.css">
+    <title>Draw Shapes</title>
+
+</head>
+<body >
+<div class="wrapper" >
+    <canvas id="myCanvas" width="600" height="400"></canvas>
+    <div class="controls">
+        <div>
+            <label for="colorStrokePicker">Pick Stroke Color:</label>
+            <input id="colorStrokePicker" type="color">
+
+            <label for="colorFillPicker">Pick Fill Color:</label>
+            <input id="colorFillPicker" type="color">
+
+            <label for="lineWidthInput">Change Line Width:</label>
+            <input class="lineWidthInput" value="5" id="lineWidthInput" type="number">
+
+            <label for="clearBtn">Clear Canvas:</label>
+            <button id="clearBtn" onclick="clearCanvas()">Clear</button>
+        </div>
+
+        <div>
+            <a
+                    href="https://alexshakhov.space/draw_shapes/draw_shapes.zip"
+                    class="link"
+                    download
+            >
+                <img src="img/download.svg" alt="">
+                Download task code
+            </a>
+
+        </div>
+    </div>
+</div>
+
+
+<script>
+    const canvas = document.getElementById('myCanvas'),
+        context = canvas.getContext('2d'),
+        colorStrokePicker = document.getElementById('colorStrokePicker'),
+        colorFillPicker = document.getElementById('colorFillPicker'),
+        lineWidthInput = document.getElementById('lineWidthInput'),
+        w = canvas.width,
+        h = canvas.height
+
+    let points = [],
+        pointCou = 0,
+        lineW = 5,
+        lineColor = '#000000',
+        fillColor = '#000000'
+
+
+    canvas.addEventListener("click", function (e) {
+        let point = {x: e.pageX - this.offsetLeft, y: e.pageY - this.offsetTop}
+
+        if (!isClosedPath(point)) {
+            points.push({x: point.x, y: point.y})
+            pointCou += 1
+            drawPoint(point)
+        }
+        if (pointCou > 1 && !isClosedPath(point)) {
+            drawLine(points[pointCou - 2], points[pointCou - 1])
+        }
+
+        if (pointCou > 2 && isClosedPath(point)) {
+            drawLine(points[pointCou - 1], points[0])
+            fillPath()
+        }
+
+    })
+    colorStrokePicker.addEventListener('change', function (e) {
+        lineColor = e.target.value
+    })
+    colorFillPicker.addEventListener('change', function (e) {
+        fillColor = e.target.value
+    })
+    lineWidthInput.addEventListener('change', function (e) {
+        let val = parseInt(e.target.value)
+        if (val <= 0 || !val) {
+            val = 1
+            this.value = val
+        } else if (val > 10) {
+            val = 10
+            this.value = val
+        }
+        lineW = val
+    })
+
+    function drawPoint(point) {
+        context.beginPath()
+        context.arc(point.x, point.y, lineW / 2.5, 0, 2 * Math.PI, true)
+        context.fillStyle = lineColor
+        context.fill()
+        context.closePath()
+    }
+
+    function drawLine(point1, point2) {
+        context.beginPath()
+        context.moveTo(point1.x, point1.y)
+        context.lineTo(point2.x, point2.y)
+        context.lineWidth = lineW
+        context.strokeStyle = lineColor
+        context.stroke()
+        context.closePath()
+    }
+
+    function isClosedPath(point) {
+        return (points.length > 1 && point.x <= points[0].x + 8 && point.x >= points[0].x - 8 && point.y <= points[0].y + 8 && point.y >= points[0].y - 8)
+    }
+
+    function fillPath() {
+        context.beginPath()
+        points.forEach((point, index) => {
+            if (index) {
+                context.lineTo(point.x, point.y)
+            } else {
+                context.moveTo(point.x, point.y)
+            }
+        })
+        context.fillStyle = fillColor
+        context.fill()
+        context.closePath()
+        clearPoints()
+    }
+
+    function clearPoints() {
+        points = []
+        pointCou = 0
+    }
+
+    function clearCanvas() {
+        context.clearRect(0, 0, w, h)
+        clearPoints()
+    }
+
+</script>
+</body>
+</html>
